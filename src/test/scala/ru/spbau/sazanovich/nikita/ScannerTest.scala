@@ -4,7 +4,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
-import ru.spbau.sazanovich.nikita.TokenType.{EOF, LEFT_BRACE, NUMBER, PLUS, RIGHT_BRACE, TokenType}
+import ru.spbau.sazanovich.nikita.TokenType.{EOF, IDENTIFIER, LEFT_BRACE, NUMBER, PLUS, RIGHT_BRACE, TokenType}
 
 /** Unit tests for [[Scanner]]. */
 class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
@@ -64,6 +64,12 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   }
 
   test("testIdentifierScanning") {
+    val tokens = getTokensWithoutErrors("sqrt()")
+    assert(tokens.size == 4)
+    verifyToken(tokens(0), IDENTIFIER, "sqrt", null)
+    verifyToken(tokens(1), LEFT_BRACE, "(", null)
+    verifyToken(tokens(2), RIGHT_BRACE, ")", null)
+    verifyToken(tokens(3), EOF, "", null)
   }
 
   private def verifyToken(
