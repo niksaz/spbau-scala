@@ -8,13 +8,13 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 /** Creates mock [[ErrorReporter]] before each tests. */
 trait TestSuiteWithErrorReporter extends FunSuite with BeforeAndAfter with MockitoSugar {
 
-  var errorReporter: ErrorReporter = _
+  protected var errorReporter: ErrorReporter = _
 
   before {
     errorReporter = mock[ErrorReporter]
   }
 
-  def verifyNumberOfErrorsReported(expectedNumberOfErrorsReported: Int): Unit = {
+  protected def verifyNumberOfErrorsReported(expectedNumberOfErrorsReported: Int): Unit = {
     verify(errorReporter, times(expectedNumberOfErrorsReported)).reportError(any())
   }
 }
