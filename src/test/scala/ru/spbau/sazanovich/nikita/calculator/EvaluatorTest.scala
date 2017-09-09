@@ -12,7 +12,7 @@ class EvaluatorTest extends TestSuiteWithErrorReporter {
     val expr =
         Binary(
             Literal(5.0),
-          PLUS_TOKEN,
+            PLUS_TOKEN,
             Binary(
                 Literal(18.0),
                 ASTERISK_TOKEN,
@@ -30,8 +30,7 @@ class EvaluatorTest extends TestSuiteWithErrorReporter {
     val expr =
         Identifier(
             Token(TokenType.IDENTIFIER, "sqrt", null),
-            Literal(16.0)
-        )
+            Literal(16.0))
     val result = evaluateWithoutErrors(expr)
     assert(result == Option(4.0))
   }
