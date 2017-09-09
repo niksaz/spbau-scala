@@ -1,41 +1,47 @@
 package ru.spbau.sazanovich.nikita
 
+import ru.spbau.sazanovich.nikita.error.ConsoleErrorReporter
+
 import scala.io.StdIn
 
-/** Evaluates an arithmetic expression entered from stdin and outputs the result to stdout. */
+/** Evaluates an arithmetic expression entered from stdin and outputs the result to console. */
 object Calculator {
 
   // Flag to control the printing of debug information to stdout
   private val debugInfoEnabled = true
 
-  // Flag for keeping track of whether an error was reported
-  private var errorOccurred = false
-
   def main(args: Array[String]): Unit = {
     val expressionString = StdIn.readLine()
     val result = parseAndEvaluate(expressionString)
-    if (errorOccurred) {
-      println("Result was not computed since there was an error.")
+    if (result.isDefined) {
+      println(result.get)
     } else {
-      println(result)
+      println("Result was not computed")
     }
   }
 
-  private def parseAndEvaluate(expressionString: String): Double = {
-    val consoleErrorReporter = new ErrorReporter {
-      override def reportError(errorMessage: String): Unit = {
-        println("Error: " + errorMessage)
-        errorOccurred = true
-      }
-    }
-    val scanner = Scanner(expressionString, consoleErrorReporter)
+  private def parseAndEvaluate(expressionString: String): Option[Double] = {
+    val consoleErrorReporter = new ConsoleErrorReporter
+
+    val scanner = new Scanner(expressionString, consoleErrorReporter)
     val tokens = scanner.scanTokens()
     if (debugInfoEnabled) {
       for (token <- tokens) {
         println("# token: " + token)
       }
     }
+
+    val parser = new Parser(tokens, consoleErrorReporter)
+    val expr = parser.parse()
+    if (consoleErrorReporter.hasErrorOccurred) {
+      return Option.empty
+    }
+    if (debugInfoEnabled) {
+      val astStringRepresentation = new AstPrinter().print(expr)
+      println("# " + astStringRepresentation)
+    }
+
     // TODO: Actually evaluate the expression
-    0.0
+    Option(0.0)
   }
 }
