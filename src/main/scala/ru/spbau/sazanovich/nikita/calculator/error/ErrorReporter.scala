@@ -1,4 +1,4 @@
-package ru.spbau.sazanovich.nikita.error
+package ru.spbau.sazanovich.nikita.calculator.error
 
 /** Used by parts of the Calculator to report errors met during execution. */
 trait ErrorReporter {

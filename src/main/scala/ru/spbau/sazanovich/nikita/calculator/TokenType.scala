@@ -1,4 +1,4 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
 /** [[Enumeration]] for tokens, we expect to find in an arithmetic expression. */
 object TokenType extends Enumeration {

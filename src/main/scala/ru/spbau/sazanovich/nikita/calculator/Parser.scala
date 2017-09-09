@@ -1,7 +1,7 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
-import ru.spbau.sazanovich.nikita.TokenType.TokenType
-import ru.spbau.sazanovich.nikita.error.ErrorReporter
+import ru.spbau.sazanovich.nikita.calculator.TokenType.TokenType
+import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
 /** Parses a list of tokens into AST. If an error is met, reports it back to [[ErrorReporter]]. */
 class Parser(val tokens: List[Token], val errorReporter: ErrorReporter) {
@@ -15,6 +15,8 @@ class Parser(val tokens: List[Token], val errorReporter: ErrorReporter) {
       case _: ParseError => null
     }
   }
+
+  // TODO: Handle identifiers.
 
   private def expression(): Expr = addition()
 
@@ -49,7 +51,7 @@ class Parser(val tokens: List[Token], val errorReporter: ErrorReporter) {
 
   private def primary(): Expr = {
     if (advanceIfNextTokenMatchAny(TokenType.NUMBER)) {
-      return Expr.Literal(previous.literal)
+      return Expr.Literal(previous.value)
     }
     if (advanceIfNextTokenMatchAny(TokenType.LEFT_BRACE)) {
       val expr = expression()

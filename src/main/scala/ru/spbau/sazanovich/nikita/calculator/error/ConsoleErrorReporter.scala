@@ -1,4 +1,4 @@
-package ru.spbau.sazanovich.nikita.error
+package ru.spbau.sazanovich.nikita.calculator.error
 
 /** Reports errors to console. */
 class ConsoleErrorReporter extends ErrorReporter {

@@ -1,14 +1,14 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify}
-import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.mockito.MockitoSugar
-import ru.spbau.sazanovich.nikita.Expr._
-import ru.spbau.sazanovich.nikita.ParserTest.{NUMBER_1_TOKEN, NUMBER_2_TOKEN}
-import ru.spbau.sazanovich.nikita.Token._
-import ru.spbau.sazanovich.nikita.TokenType._
-import ru.spbau.sazanovich.nikita.error.ErrorReporter
+import org.scalatest.{BeforeAndAfter, FunSuite}
+import ru.spbau.sazanovich.nikita.calculator.Expr.{Binary, Grouping, Literal}
+import ru.spbau.sazanovich.nikita.calculator.ParserTest.{NUMBER_1_TOKEN, NUMBER_2_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.Token.{EOF_TOKEN, LEFT_BRACE_TOKEN, PLUS_TOKEN, RIGHT_BRACE_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.TokenType._
+import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
 /** Unit tests for [[Parser]]. */
 class ParserTest extends FunSuite with BeforeAndAfter with MockitoSugar {

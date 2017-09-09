@@ -1,4 +1,4 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
 /** Represents a node in AST. */
 abstract class Expr {
@@ -24,7 +24,7 @@ object Expr {
     override def accept[R](visitor: Visitor[R]): R = visitor.visitGroupingExpr(this)
   }
 
-  case class Literal(value: Any) extends Expr {
+  case class Literal(value: Double) extends Expr {
     override def accept[R](visitor: Visitor[R]): R = visitor.visitLiteralExpr(this)
   }
 

@@ -1,7 +1,7 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
-import ru.spbau.sazanovich.nikita.TokenType.TokenType
-import ru.spbau.sazanovich.nikita.error.ErrorReporter
+import ru.spbau.sazanovich.nikita.calculator.TokenType.TokenType
+import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
 import scala.collection.mutable.ListBuffer
 
@@ -29,7 +29,7 @@ class Scanner(val expressionString: String, val errorReporter: ErrorReporter) {
       case '(' => addToken(Token.LEFT_BRACE_TOKEN)
       case ')' => addToken(Token.RIGHT_BRACE_TOKEN)
       case '+' => addToken(Token.PLUS_TOKEN)
-      case '-' => addToken(Token.PLUS_TOKEN)
+      case '-' => addToken(Token.MINUS_TOKEN)
       case '*' => addToken(Token.ASTERISK_TOKEN)
       case '/' => addToken(Token.SLASH_TOKEN)
       case ' ' | '\r' | '\t' =>
@@ -60,7 +60,7 @@ class Scanner(val expressionString: String, val errorReporter: ErrorReporter) {
     while (isLowercaseAlpha(peek())) {
       advance()
     }
-    addToken(TokenType.IDENTIFIER, null)
+    addToken(TokenType.IDENTIFIER, 0.0)
   }
 
   private def isDigit(char: Char) = char >= '0' && char <= '9'
@@ -77,9 +77,9 @@ class Scanner(val expressionString: String, val errorReporter: ErrorReporter) {
     if (reachedTheEnd) '\0' else expressionString.charAt(current)
   }
 
-  private def addToken(tokenType: TokenType, literal: Any): Unit = {
+  private def addToken(tokenType: TokenType, value: Double): Unit = {
     val lexeme = expressionString.substring(start, current)
-    addToken(Token(tokenType, lexeme, literal))
+    addToken(Token(tokenType, lexeme, value))
   }
 
   private def addToken(token: Token): Unit = {

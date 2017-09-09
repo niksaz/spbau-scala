@@ -1,17 +1,17 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
-import ru.spbau.sazanovich.nikita.Token._
-import ru.spbau.sazanovich.nikita.TokenType._
-import ru.spbau.sazanovich.nikita.error.ErrorReporter
+import ru.spbau.sazanovich.nikita.calculator.Token.{EOF_TOKEN, LEFT_BRACE_TOKEN, PLUS_TOKEN, RIGHT_BRACE_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.TokenType._
+import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
 /** Unit tests for [[Scanner]]. */
 class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
 
-  private var errorReporter: ErrorReporter  = _
+  private var errorReporter: ErrorReporter = _
 
   before {
     errorReporter = mock[ErrorReporter]
@@ -69,7 +69,7 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
     val tokens = getTokensWithoutErrors("sqrt()")
     assert(tokens.size == 4)
     verifyTokens(tokens,
-        Token(IDENTIFIER, "sqrt", null),
+        Token(IDENTIFIER, "sqrt", 0.0),
         LEFT_BRACE_TOKEN,
         RIGHT_BRACE_TOKEN,
         EOF_TOKEN)

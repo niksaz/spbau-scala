@@ -1,6 +1,7 @@
-package ru.spbau.sazanovich.nikita
+package ru.spbau.sazanovich.nikita.calculator
 
-import ru.spbau.sazanovich.nikita.error.ConsoleErrorReporter
+import com.google.common.annotations.VisibleForTesting
+import ru.spbau.sazanovich.nikita.calculator.error.{ConsoleErrorReporter, ErrorReporter}
 
 import scala.io.StdIn
 
@@ -12,7 +13,8 @@ object Calculator {
 
   def main(args: Array[String]): Unit = {
     val expressionString = StdIn.readLine()
-    val result = parseAndEvaluate(expressionString)
+    val consoleErrorReporter = new ConsoleErrorReporter
+    val result = parseAndEvaluate(expressionString, consoleErrorReporter)
     if (result.isDefined) {
       println(result.get)
     } else {
@@ -20,10 +22,10 @@ object Calculator {
     }
   }
 
-  private def parseAndEvaluate(expressionString: String): Option[Double] = {
-    val consoleErrorReporter = new ConsoleErrorReporter
-
-    val scanner = new Scanner(expressionString, consoleErrorReporter)
+  @VisibleForTesting
+  private[calculator] def parseAndEvaluate(
+      expressionString: String, errorReporter: ErrorReporter): Option[Double] = {
+    val scanner = new Scanner(expressionString, errorReporter)
     val tokens = scanner.scanTokens()
     if (debugInfoEnabled) {
       for (token <- tokens) {
@@ -31,17 +33,15 @@ object Calculator {
       }
     }
 
-    val parser = new Parser(tokens, consoleErrorReporter)
+    val parser = new Parser(tokens, errorReporter)
     val expr = parser.parse()
-    if (consoleErrorReporter.hasErrorOccurred) {
+    if (errorReporter.hasErrorOccurred) {
       return Option.empty
     }
     if (debugInfoEnabled) {
-      val astStringRepresentation = new AstPrinter().print(expr)
+      val astStringRepresentation = AstPrinter().print(expr)
       println("# " + astStringRepresentation)
     }
-
-    // TODO: Actually evaluate the expression
-    Option(0.0)
+    Option(Evaluator().evaluate(expr))
   }
 }
