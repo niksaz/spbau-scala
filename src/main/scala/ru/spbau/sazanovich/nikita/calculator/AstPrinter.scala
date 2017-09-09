@@ -5,18 +5,24 @@ case class AstPrinter() extends Expr.Visitor[String] {
 
   def print(expr: Expr): String = expr.accept(this)
 
-  def visitBinaryExpr(expr: Expr.Binary): String = {
+  override def visitBinaryExpr(expr: Expr.Binary): String = {
     parenthesize(expr.operator.lexeme, expr.left, expr.right)
   }
 
-  def visitGroupingExpr(expr: Expr.Grouping): String = {
+  override def visitGroupingExpr(expr: Expr.Grouping): String = {
     parenthesize("group", expr.expression)
   }
 
-  def visitLiteralExpr(expr: Expr.Literal): String = expr.value.toString
+  override def visitLiteralExpr(expr: Expr.Literal): String = {
+    expr.value.toString
+  }
 
-  def visitUnaryExpr(expr: Expr.Unary): String = {
+  override def visitUnaryExpr(expr: Expr.Unary): String = {
     parenthesize(expr.operator.lexeme, expr.right)
+  }
+
+  override def visitIdentifierExpr(expr: Expr.Identifier): String = {
+    parenthesize(expr.identifier.lexeme, expr.right)
   }
 
   private def parenthesize(name: String, exprs: Expr*) = {
@@ -29,4 +35,5 @@ case class AstPrinter() extends Expr.Visitor[String] {
     builder.append(")")
     builder.toString
   }
+
 }

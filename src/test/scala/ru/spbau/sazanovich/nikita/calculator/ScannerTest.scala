@@ -29,7 +29,7 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   }
 
   test("testScanningTokensAfterErrorOccurred") {
-    val tokens = getTokensAndExpectNErrors("(  11 .  + 5", 1)
+    val tokens = getTokensWithErrorsExpected("(  11 .  + 5", 1)
     verifyTokens(tokens,
         LEFT_BRACE_TOKEN,
         Token(NUMBER, "11", 11),
@@ -60,7 +60,7 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   }
 
   test("testDotIsNotNumber") {
-    val tokens = getTokensAndExpectNErrors(".", 1)
+    val tokens = getTokensWithErrorsExpected(".", 1)
     verifyTokens(tokens,
         EOF_TOKEN)
   }
@@ -69,7 +69,7 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
     val tokens = getTokensWithoutErrors("sqrt()")
     assert(tokens.size == 4)
     verifyTokens(tokens,
-        Token(IDENTIFIER, "sqrt", 0.0),
+        Token(IDENTIFIER, "sqrt", null),
         LEFT_BRACE_TOKEN,
         RIGHT_BRACE_TOKEN,
         EOF_TOKEN)
@@ -85,10 +85,10 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   }
 
   private def getTokensWithoutErrors(expressionString: String): List[Token] = {
-    getTokensAndExpectNErrors(expressionString, 0)
+    getTokensWithErrorsExpected(expressionString, 0)
   }
 
-  private def getTokensAndExpectNErrors(
+  private def getTokensWithErrorsExpected(
       expressionString: String, expectedNumberOfErrorsReported: Int): List[Token] = {
     val scanner = new Scanner(expressionString, errorReporter)
     val tokens = scanner.scanTokens()

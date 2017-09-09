@@ -15,9 +15,24 @@ class CalculatorTest extends FunSuite with BeforeAndAfter with MockitoSugar {
     errorReporter = mock[ErrorReporter]
   }
 
-  test("testparseAndEvaluateExpression") {
-    val result = Calculator.parseAndEvaluate("(13.0   + -(6 - 5)) / 2 / 3 ", errorReporter)
-    verify(errorReporter, times(0)).reportError(any())
+  test("testParseAndEvaluateExpression") {
+    val result = parseAndEvaluateWithoutErrors("(13.0   + -(6 - 5)) / 2 / 3 ")
     assert(result == Option(2.0))
+  }
+
+  test("testParseAndEvaluateExpressionWithIdentifiers") {
+    val result = parseAndEvaluateWithoutErrors("cos(0.0)+sqrt(25.)")
+    assert(result == Option(6.0))
+  }
+
+  private def parseAndEvaluateWithoutErrors(expressionString: String): Option[Double] = {
+    parseAndEvaluateWithErrorsExpected(expressionString, 0)
+  }
+
+  private def parseAndEvaluateWithErrorsExpected(
+      expressionString: String, expectedNumberOfErrorsReported: Int): Option[Double] = {
+    val result = Calculator.parseAndEvaluate(expressionString, errorReporter)
+    verify(errorReporter, times(expectedNumberOfErrorsReported)).reportError(any())
+    result
   }
 }

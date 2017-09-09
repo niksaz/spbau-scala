@@ -60,7 +60,7 @@ class Scanner(val expressionString: String, val errorReporter: ErrorReporter) {
     while (isLowercaseAlpha(peek())) {
       advance()
     }
-    addToken(TokenType.IDENTIFIER, 0.0)
+    addToken(TokenType.IDENTIFIER, null)
   }
 
   private def isDigit(char: Char) = char >= '0' && char <= '9'
@@ -74,10 +74,10 @@ class Scanner(val expressionString: String, val errorReporter: ErrorReporter) {
   }
 
   private def peek(): Char = {
-    if (reachedTheEnd) '\0' else expressionString.charAt(current)
+    if (reachedTheEnd) '\u0000' else expressionString.charAt(current)
   }
 
-  private def addToken(tokenType: TokenType, value: Double): Unit = {
+  private def addToken(tokenType: TokenType, value: Any): Unit = {
     val lexeme = expressionString.substring(start, current)
     addToken(Token(tokenType, lexeme, value))
   }

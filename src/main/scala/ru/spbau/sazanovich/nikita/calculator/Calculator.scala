@@ -9,7 +9,7 @@ import scala.io.StdIn
 object Calculator {
 
   // Flag to control the printing of debug information to stdout
-  private val debugInfoEnabled = true
+  private val debugInfoEnabled = false
 
   def main(args: Array[String]): Unit = {
     val expressionString = StdIn.readLine()
@@ -42,6 +42,6 @@ object Calculator {
       val astStringRepresentation = AstPrinter().print(expr)
       println("# " + astStringRepresentation)
     }
-    Option(Evaluator().evaluate(expr))
+    Evaluator(errorReporter).evaluateIfPossible(expr)
   }
 }

@@ -16,8 +16,6 @@ class Parser(val tokens: List[Token], val errorReporter: ErrorReporter) {
     }
   }
 
-  // TODO: Handle identifiers.
-
   private def expression(): Expr = addition()
 
   private def addition(): Expr = {
@@ -51,12 +49,19 @@ class Parser(val tokens: List[Token], val errorReporter: ErrorReporter) {
 
   private def primary(): Expr = {
     if (advanceIfNextTokenMatchAny(TokenType.NUMBER)) {
-      return Expr.Literal(previous.value)
+      return Expr.Literal(previous.literal)
     }
     if (advanceIfNextTokenMatchAny(TokenType.LEFT_BRACE)) {
       val expr = expression()
       consume(TokenType.RIGHT_BRACE, "expected ')' after expression")
       return Expr.Grouping(expr)
+    }
+    if (advanceIfNextTokenMatchAny(TokenType.IDENTIFIER)) {
+      val identifier = previous
+      consume(TokenType.LEFT_BRACE, "expected '(' after an identifier")
+      val right = expression()
+      consume(TokenType.RIGHT_BRACE, "expected ')' after expression")
+      return Expr.Identifier(identifier, right)
     }
     throw error(peek, "expected expression")
   }

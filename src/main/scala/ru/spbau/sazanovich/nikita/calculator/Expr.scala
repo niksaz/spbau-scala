@@ -14,6 +14,7 @@ object Expr {
     def visitGroupingExpr(expr: Grouping): R
     def visitLiteralExpr(expr: Literal): R
     def visitUnaryExpr(expr: Unary): R
+    def visitIdentifierExpr(expr: Identifier): R
   }
 
   case class Binary(left: Expr, operator: Token, right: Expr) extends Expr {
@@ -24,11 +25,15 @@ object Expr {
     override def accept[R](visitor: Visitor[R]): R = visitor.visitGroupingExpr(this)
   }
 
-  case class Literal(value: Double) extends Expr {
+  case class Literal(value: Any) extends Expr {
     override def accept[R](visitor: Visitor[R]): R = visitor.visitLiteralExpr(this)
   }
 
   case class Unary(operator: Token, right: Expr) extends Expr {
     override def accept[R](visitor: Visitor[R]): R = visitor.visitUnaryExpr(this)
+  }
+
+  case class Identifier(identifier: Token, right: Expr) extends Expr {
+    override def accept[R](visitor: Visitor[R]): R = visitor.visitIdentifierExpr(this)
   }
 }

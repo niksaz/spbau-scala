@@ -4,9 +4,9 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
-import ru.spbau.sazanovich.nikita.calculator.Expr.{Binary, Grouping, Literal}
-import ru.spbau.sazanovich.nikita.calculator.ParserTest.{NUMBER_1_TOKEN, NUMBER_2_TOKEN}
-import ru.spbau.sazanovich.nikita.calculator.Token.{EOF_TOKEN, LEFT_BRACE_TOKEN, PLUS_TOKEN, RIGHT_BRACE_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.Expr._
+import ru.spbau.sazanovich.nikita.calculator.ParserTest._
+import ru.spbau.sazanovich.nikita.calculator.Token._
 import ru.spbau.sazanovich.nikita.calculator.TokenType._
 import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
@@ -27,15 +27,23 @@ class ParserTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   }
 
   test("parseIncorrectExpr") {
-    val expr = parseAndExpectNErrors(List(LEFT_BRACE_TOKEN, EOF_TOKEN), 1)
+    val expr = parseWithErrorsExpected(List(LEFT_BRACE_TOKEN, EOF_TOKEN), 1)
     assert(expr == null)
   }
 
-  private def parseWithoutErrors(tokens: Token*): Expr = {
-    parseAndExpectNErrors(tokens.toList, 0)
+  test("parseIdentifierExpr") {
+    val expr =
+        parseWithoutErrors(
+            SQRT_TOKEN, LEFT_BRACE_TOKEN, NUMBER_1_TOKEN, RIGHT_BRACE_TOKEN, EOF_TOKEN)
+    val expectedExpr = Identifier(Token(IDENTIFIER, "sqrt", null), Literal(1.0))
+    assert(expr == expectedExpr)
   }
 
-  private def parseAndExpectNErrors(
+  private def parseWithoutErrors(tokens: Token*): Expr = {
+    parseWithErrorsExpected(tokens.toList, 0)
+  }
+
+  private def parseWithErrorsExpected(
       tokens: List[Token], expectedNumberOfErrorsReported: Int): Expr = {
     val parser = new Parser(tokens, errorReporter)
     val expr = parser.parse()
@@ -45,6 +53,8 @@ class ParserTest extends FunSuite with BeforeAndAfter with MockitoSugar {
 }
 
 object ParserTest {
+
+  private val SQRT_TOKEN = Token(IDENTIFIER, "sqrt", null)
 
   private val NUMBER_1_TOKEN = Token(NUMBER, "1.0", 1.0)
   private val NUMBER_2_TOKEN = Token(NUMBER, "2.0", 2.0)

@@ -1,11 +1,21 @@
 package ru.spbau.sazanovich.nikita.calculator
 
-import org.scalatest.FunSuite
-import ru.spbau.sazanovich.nikita.calculator.Expr.{Binary, Grouping, Literal}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify}
+import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.mockito.MockitoSugar
+import ru.spbau.sazanovich.nikita.calculator.Expr._
 import ru.spbau.sazanovich.nikita.calculator.Token.{ASTERISK_TOKEN, MINUS_TOKEN, PLUS_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
 
 /** Unit tests for [[Parser]]. */
-class EvaluatorTest extends FunSuite {
+class EvaluatorTest extends FunSuite with BeforeAndAfter with MockitoSugar {
+
+  private var errorReporter: ErrorReporter = _
+
+  before {
+    errorReporter = mock[ErrorReporter]
+  }
 
   test("evaluateExpressionWithBrackets") {
     // 5.0 + 18.0 * (12.0 - 10.0)
@@ -21,9 +31,29 @@ class EvaluatorTest extends FunSuite {
                         Literal(12.0),
                         MINUS_TOKEN,
                         Literal(10.0)))))
-    val result = evaluate(expr)
-    assert(result == 41.0)
+    val result = evaluateWithoutErrors(expr)
+    assert(result == Option(41.0))
   }
 
-  private def evaluate(expr: Expr): Double = Evaluator().evaluate(expr)
+  test("evaluateExpressionWithIdentifier") {
+    val expr =
+        Identifier(
+            Token(TokenType.IDENTIFIER, "sqrt", null),
+            Literal(16.0)
+        )
+    val result = evaluateWithoutErrors(expr)
+    assert(result == Option(4.0))
+  }
+
+  private def evaluateWithoutErrors(expr: Expr): Option[Double] = {
+    evaluateWithErrorsExpected(expr, 0)
+  }
+
+  private def evaluateWithErrorsExpected(
+      expr: Expr, expectedNumberOfErrorsReported: Int): Option[Double] = {
+    val evaluator = Evaluator(errorReporter)
+    val result = evaluator.evaluateIfPossible(expr)
+    verify(errorReporter, times(expectedNumberOfErrorsReported)).reportError(any())
+    result
+  }
 }
