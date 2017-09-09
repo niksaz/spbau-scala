@@ -1,21 +1,11 @@
 package ru.spbau.sazanovich.nikita.calculator
 
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfter, FunSuite}
-import ru.spbau.sazanovich.nikita.calculator.Token.{EOF_TOKEN, LEFT_BRACE_TOKEN, PLUS_TOKEN, RIGHT_BRACE_TOKEN}
+import ru.spbau.sazanovich.nikita.calculator.Token._
 import ru.spbau.sazanovich.nikita.calculator.TokenType._
-import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
+import ru.spbau.sazanovich.nikita.calculator.error.TestSuiteWithErrorReporter
 
 /** Unit tests for [[Scanner]]. */
-class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
-
-  private var errorReporter: ErrorReporter = _
-
-  before {
-    errorReporter = mock[ErrorReporter]
-  }
+class ScannerTest extends TestSuiteWithErrorReporter {
 
   test("testScanningCorrectExpression") {
     val tokens = getTokensWithoutErrors("(  1\t  + 15.0)   ")
@@ -92,7 +82,7 @@ class ScannerTest extends FunSuite with BeforeAndAfter with MockitoSugar {
       expressionString: String, expectedNumberOfErrorsReported: Int): List[Token] = {
     val scanner = new Scanner(expressionString, errorReporter)
     val tokens = scanner.scanTokens()
-    verify(errorReporter, times(expectedNumberOfErrorsReported)).reportError(any())
+    verifyNumberOfErrorsReported(expectedNumberOfErrorsReported)
     tokens
   }
 }

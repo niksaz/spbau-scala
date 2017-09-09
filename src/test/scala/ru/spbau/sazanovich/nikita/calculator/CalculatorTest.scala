@@ -1,19 +1,9 @@
 package ru.spbau.sazanovich.nikita.calculator
 
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfter, FunSuite}
-import ru.spbau.sazanovich.nikita.calculator.error.ErrorReporter
+import ru.spbau.sazanovich.nikita.calculator.error.TestSuiteWithErrorReporter
 
 /** Integration tests for the parts of Calculator. */
-class CalculatorTest extends FunSuite with BeforeAndAfter with MockitoSugar {
-
-  private var errorReporter: ErrorReporter = _
-
-  before {
-    errorReporter = mock[ErrorReporter]
-  }
+class CalculatorTest extends TestSuiteWithErrorReporter {
 
   test("testParseAndEvaluateExpression") {
     val result = parseAndEvaluateWithoutErrors("(13.0   + -(6 - 5)) / 2 / 3 ")
@@ -32,7 +22,7 @@ class CalculatorTest extends FunSuite with BeforeAndAfter with MockitoSugar {
   private def parseAndEvaluateWithErrorsExpected(
       expressionString: String, expectedNumberOfErrorsReported: Int): Option[Double] = {
     val result = Calculator.parseAndEvaluate(expressionString, errorReporter)
-    verify(errorReporter, times(expectedNumberOfErrorsReported)).reportError(any())
+    verifyNumberOfErrorsReported(expectedNumberOfErrorsReported)
     result
   }
 }
