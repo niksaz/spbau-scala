@@ -23,6 +23,7 @@ class CalendarStorage extends PersistentActor {
   override def receiveCommand: Receive = {
     case persistentCommand: PersistentCommand =>
       persist(persistentCommand)(receivePersistentCommand)
+      sender ! ScheduleEventSuccess
     case GetNextUserCalendarEvents(id, numberOfEvents) =>
       val userCalendarEvents = usersCalendarEvents.getOrElseUpdate(id, ArrayBuffer.empty)
       val nextUserEvents = computeNextUserEvents(userCalendarEvents, numberOfEvents)
@@ -63,6 +64,8 @@ object CalendarStorage {
   trait PersistentCommand
 
   case class ScheduleEvent(id: Long, event: CalendarEvent) extends PersistentCommand
+
+  case class ScheduleEventSuccess()
 
   trait Query
 
