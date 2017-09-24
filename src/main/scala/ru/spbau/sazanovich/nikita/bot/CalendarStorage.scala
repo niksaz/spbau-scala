@@ -41,13 +41,13 @@ class CalendarStorage extends PersistentActor {
   private def computeNextUserEvents(
       userCalendarEvents: CalendarEvents, numberOfEvents: Int): CalendarEvents = {
     require(numberOfEvents > 0)
-    // TODO: Implement keeping the buffer in sorted order to not resort it.
+    // TODO(niksaz): Implement keeping the buffer in sorted order to not resort it.
     val sortedEvents =
       userCalendarEvents.sortWith(
         (event1, event2) => event1.startDateTime.compareTo(event2.startDateTime) < 0)
     val nowDate = DateTime.now()
     val nextEvents: ArrayBuffer[CalendarEvent] = ArrayBuffer.empty
-    // TODO: Add binary search to find the start of the iteration.
+    // TODO(niksaz): Add binary search to find the start of the iteration.
     val sortedEventsIterator = sortedEvents.iterator
     while (sortedEventsIterator.hasNext && nextEvents.size < numberOfEvents) {
       val nextEvent = sortedEventsIterator.next()

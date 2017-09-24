@@ -8,58 +8,49 @@ import scala.util.parsing.combinator.RegexParsers
 import ru.spbau.sazanovich.nikita.bot.CalendarEvent
 import MessageParser.UserMessage
 
-
 /** Parses user input and returns corresponding [[UserMessage]]. */
-class MessageParser extends RegexParsers {
-
-  import MessageParser._
+object MessageParser extends RegexParsers {
 
   override def skipWhitespace = true
 
   override protected val whiteSpace: Regex = "[ \t\r\f]+".r
 
   val dateFormatter: DateTimeFormatter = DateTimeFormat.forPattern("dd-MM-yyyyHH:mm")
-  val dateParser: Parser[String] = "[0-9]{2}-[0-9]{2}-[0-9]{4}".r ^^ (date => date)
-  val timeParser: Parser[String] = "[0-9]{2}:[0-9]{2}".r ^^ (date => date)
+  val dateParser: Parser[String] = "[0-9]{2}-[0-9]{2}-[0-9]{4}".r
+  val timeParser: Parser[String] = "[0-9]{2}:[0-9]{2}".r
 
   val dateTimeParser: Parser[DateTime] =
     dateParser ~ timeParser ^^ {
       case date ~ time => DateTime.parse(date + time, dateFormatter)
     }
 
-  val quoteParser: Parser[String] = "\"".r ^^ (quote => quote)
-  val messageWithoutQuotesParser: Parser[String] = "[^\"]+".r ^^ (quote => quote)
-
-  val nameParser: Parser[String] =
-    quoteParser ~> (messageWithoutQuotesParser <~ quoteParser) ^^ (name => name)
+  val nameParser: Parser[String] = "\"" ~> ("[^\"]+".r <~ "\"")
 
   val createEventParser: Parser[CreateEventMessage] =
     "Create event from" ~> dateTimeParser ~ (
       "to" ~> dateTimeParser ~ ("named" ~> nameParser)) ^? {
-        case startDateTime ~ (endDateTime ~ name) if startDateTime.compareTo(endDateTime) <= 0 =>
-          CreateEventMessage(CalendarEvent(name, startDateTime, endDateTime))
-      }
+      // TODO(niksaz): Return actual error rather than a generic message if the startTime happens
+      // after the endTime.
+      case startDateTime ~ (endDateTime ~ name) if startDateTime.compareTo(endDateTime) <= 0 =>
+        CreateEventMessage(CalendarEvent(name, startDateTime, endDateTime))
+    }
 
-  val whatIsNext: Parser[WhatIsNext] =
+  val whatIsNextParser: Parser[WhatIsNext] =
     "What is next?" ^^ (_ => WhatIsNext())
 
-  val eventsParser: Parser[String] = "events?".r ^^ (word => word)
   val intParser: Parser[Int] = "[1-9][0-9]*".r ^^ (_.toInt)
 
   val whatAreNext: Parser[WhatAreNextEventsMessage] =
-    "What are next" ~> (intParser <~ eventsParser) ^^
+    "What are next" ~> (intParser <~ "events?") ^^
       (numberOfEvents => WhatAreNextEventsMessage(numberOfEvents))
 
   val userMessageParser: Parser[UserMessage] =
-    createEventParser | whatIsNext | whatAreNext
-}
-
-object MessageParser extends MessageParser {
+    createEventParser | whatIsNextParser | whatAreNext
 
   def parse(text: String): UserMessage = {
     parse(userMessageParser, text) match {
       case Success(userMessage, _) => userMessage
-      case _ => IncorrectMessage("Incorrect message. :(")
+      case _ => IncorrectMessage("I do not understand you. :(")
     }
   }
 

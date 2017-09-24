@@ -25,7 +25,7 @@ class MessageParserTest extends FunSuite {
     val result =
       MessageParser.parse(
         "Create event from 30-05-1998 12:00 to 30-05-1998 10:00 named \"Surprise\"")
-    assert(result == MessageParser.IncorrectMessage("Incorrect message. :("))
+    assert(result == MessageParser.IncorrectMessage("I do not understand you. :("))
   }
 
   test("parseWhatIsNext") {
@@ -36,5 +36,10 @@ class MessageParserTest extends FunSuite {
   test("parseWhatAreNext") {
     val result = MessageParser.parse("What are next 5 events?")
     assert(result == MessageParser.WhatAreNextEventsMessage(5))
+  }
+
+  test("parseIncorrectMessage") {
+    val result = MessageParser.parse("What should I do?")
+    assert(result == MessageParser.IncorrectMessage("I do not understand you. :("))
   }
 }
