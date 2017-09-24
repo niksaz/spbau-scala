@@ -1,5 +1,7 @@
 package ru.spbau.sazanovich.nikita.bot
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -15,17 +17,22 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Success
 
-class CalendarBotPingActor(bot: CalendarBot) extends Actor {
+class CalendarBotLoggingActor(bot: CalendarBot) extends Actor {
 
   override def receive: PartialFunction[Any, Unit] = {
-    case "Ping" => bot.receivePing()
+    case "Log" => bot.log()
   }
 }
 
 class CalendarBot(val token: String, val database: ActorRef)
     extends TelegramBot with Polling with Commands {
 
-  def receivePing(): Unit = {
+  val requestsSinceLastLogging = new AtomicInteger()
+
+  def log(): Unit = {
+    val numberOfRequests = requestsSinceLastLogging.getAndSet(0)
+    // TODO(niksaz): Replace println with a more mature logging system.
+    println("requests for the period: " + numberOfRequests)
   }
 
   onMessage {
@@ -36,6 +43,7 @@ class CalendarBot(val token: String, val database: ActorRef)
   }
 
   def processMessageText(text: String)(implicit message: Message): Unit = {
+    requestsSinceLastLogging.addAndGet(1)
     val chatId = message.chat.id
     implicit val timeout: Timeout = Timeout(1.second)
     MessageParser.parse(text) match {

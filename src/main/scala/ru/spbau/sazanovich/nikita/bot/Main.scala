@@ -5,16 +5,19 @@ import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 object Main extends App {
 
-  val token = "415211493:AAFU3eGbyvEK6CjNvcdTzAaFFsKBWJVRD88"
+  private val EveryMinuteScheduleName = "every minute"
+
+  private val token = "415211493:AAFU3eGbyvEK6CjNvcdTzAaFFsKBWJVRD88"
 
   val system = ActorSystem()
   val scheduler = QuartzSchedulerExtension(system)
   val database = system.actorOf(Props(classOf[CalendarStorage]))
 
   private val bot = new CalendarBot(token, database)
-  val actor = system.actorOf(Props(classOf[CalendarBotPingActor], bot))
+  val actor = system.actorOf(Props(classOf[CalendarBotLoggingActor], bot))
 
-  scheduler.createSchedule("every minute", None, "  0/1 * * 1/1 * ? *")
+  scheduler.createSchedule(EveryMinuteScheduleName, None, "0 * * * * ? *")
+  scheduler.schedule(EveryMinuteScheduleName, actor, "Log")
 
   bot.run()
 }
