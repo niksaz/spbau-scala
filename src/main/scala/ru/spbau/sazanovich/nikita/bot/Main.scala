@@ -15,7 +15,6 @@ object Main extends App {
   val actor = system.actorOf(Props(classOf[CalendarBotPingActor], bot))
 
   scheduler.createSchedule("every minute", None, "  0/1 * * 1/1 * ? *")
-  scheduler.schedule("every minute", actor, "Ping")
 
   bot.run()
 }
