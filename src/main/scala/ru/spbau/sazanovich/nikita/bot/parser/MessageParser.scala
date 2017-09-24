@@ -2,11 +2,11 @@ package ru.spbau.sazanovich.nikita.bot.parser
 
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import ru.spbau.sazanovich.nikita.bot.CalendarEvent
+import ru.spbau.sazanovich.nikita.bot.parser.MessageParser.UserMessage
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
-import ru.spbau.sazanovich.nikita.bot.CalendarEvent
-import MessageParser.UserMessage
 
 /** Parses user input and returns corresponding [[UserMessage]]. */
 object MessageParser extends RegexParsers {
@@ -28,11 +28,14 @@ object MessageParser extends RegexParsers {
 
   val createEventParser: Parser[CreateEventMessage] =
     "Create event from" ~> dateTimeParser ~ (
-      "to" ~> dateTimeParser ~ ("named" ~> nameParser)) ^? {
-      // TODO(niksaz): Return actual error rather than a generic message if the startTime happens
-      // after the endTime.
-      case startDateTime ~ (endDateTime ~ name) if startDateTime.compareTo(endDateTime) <= 0 =>
-        CreateEventMessage(CalendarEvent(name, startDateTime, endDateTime))
+      "to" ~> dateTimeParser ~ ("named" ~> nameParser)) >> {
+      case startDateTime ~ (endDateTime ~ name) =>
+        if (startDateTime.compareTo(endDateTime) <= 0) {
+          success(CreateEventMessage(CalendarEvent(name, startDateTime, endDateTime)))
+        } else {
+          // Raising an error, since there is no need to try other parsers -- the error is semantic.
+          err("The end time happens before start time. :?")
+        }
     }
 
   val whatIsNextParser: Parser[WhatIsNext] =
@@ -40,16 +43,17 @@ object MessageParser extends RegexParsers {
 
   val intParser: Parser[Int] = "[1-9][0-9]*".r ^^ (_.toInt)
 
-  val whatAreNext: Parser[WhatAreNextEventsMessage] =
+  val whatAreNextParser: Parser[WhatAreNextEventsMessage] =
     "What are next" ~> (intParser <~ "events?") ^^
       (numberOfEvents => WhatAreNextEventsMessage(numberOfEvents))
 
   val userMessageParser: Parser[UserMessage] =
-    createEventParser | whatIsNextParser | whatAreNext
+    createEventParser | whatIsNextParser | whatAreNextParser
 
   def parse(text: String): UserMessage = {
     parse(userMessageParser, text) match {
       case Success(userMessage, _) => userMessage
+      case Error(message, _) => IncorrectMessage(message)
       case _ => IncorrectMessage("I do not understand you. :(")
     }
   }
