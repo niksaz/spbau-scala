@@ -24,9 +24,9 @@ class CalendarStorage extends PersistentActor {
     case persistentCommand: PersistentCommand =>
       persist(persistentCommand)(receivePersistentCommand)
       sender ! ScheduleEventSuccess
-    case GetNextUserCalendarEvents(id, numberOfEvents) =>
+    case GetNextUserCalendarEventsFrom(id, nowDate, numberOfEvents) =>
       val userCalendarEvents = usersCalendarEvents.getOrElseUpdate(id, ArrayBuffer.empty)
-      val nextUserEvents = computeNextUserEvents(userCalendarEvents, numberOfEvents)
+      val nextUserEvents = computeNextUserEventsFrom(nowDate, userCalendarEvents, numberOfEvents)
       sender ! NextUserCalendarEvents(nextUserEvents)
   }
 
@@ -38,24 +38,14 @@ class CalendarStorage extends PersistentActor {
     }
   }
 
-  private def computeNextUserEvents(
-      userCalendarEvents: CalendarEvents, numberOfEvents: Int): CalendarEvents = {
+  private def computeNextUserEventsFrom(
+    nowDate: DateTime, userCalendarEvents: CalendarEvents, numberOfEvents: Int): CalendarEvents = {
     require(numberOfEvents > 0)
     // TODO(niksaz): Implement keeping the buffer in sorted order to not resort it.
     val sortedEvents =
-      userCalendarEvents.sortWith(
-        (event1, event2) => event1.startDateTime.compareTo(event2.startDateTime) < 0)
-    val nowDate = DateTime.now()
-    val nextEvents: ArrayBuffer[CalendarEvent] = ArrayBuffer.empty
+      userCalendarEvents.sortBy(_.startDateTime.getMillis)
     // TODO(niksaz): Add binary search to find the start of the iteration.
-    val sortedEventsIterator = sortedEvents.iterator
-    while (sortedEventsIterator.hasNext && nextEvents.size < numberOfEvents) {
-      val nextEvent = sortedEventsIterator.next()
-      if (nowDate.compareTo(nextEvent.endDateTime) < 0) {
-        nextEvents += nextEvent
-      }
-    }
-    nextEvents
+    sortedEvents.filter(event => nowDate.compareTo(event.endDateTime) < 0).take(numberOfEvents)
   }
 }
 
@@ -69,7 +59,8 @@ object CalendarStorage {
 
   trait Query
 
-  case class GetNextUserCalendarEvents(id: Long, numberOfEvents: Int) extends Query
+  case class GetNextUserCalendarEventsFrom(id: Long, nowDate: DateTime, numberOfEvents: Int)
+    extends Query
 
   /** Contains next user events sorted by their start times. */
   case class NextUserCalendarEvents(events: ArrayBuffer[CalendarEvent])

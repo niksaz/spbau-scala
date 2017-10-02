@@ -8,8 +8,9 @@ import akka.util.Timeout
 import info.mukel.telegrambot4s.api.declarative.Commands
 import info.mukel.telegrambot4s.api.{Polling, TelegramBot}
 import info.mukel.telegrambot4s.models.Message
+import org.joda.time.DateTime
 import ru.spbau.sazanovich.nikita.bot.CalendarBot.{DatabaseErrorMessage, NoNextEventsMessage, SuccessfullyScheduledEventMessage}
-import ru.spbau.sazanovich.nikita.bot.CalendarStorage.{GetNextUserCalendarEvents, NextUserCalendarEvents, ScheduleEvent, ScheduleEventSuccess}
+import ru.spbau.sazanovich.nikita.bot.CalendarStorage.{GetNextUserCalendarEventsFrom, NextUserCalendarEvents, ScheduleEvent, ScheduleEventSuccess}
 import ru.spbau.sazanovich.nikita.bot.parser.MessageParser
 import ru.spbau.sazanovich.nikita.bot.parser.MessageParser.{CreateEventMessage, IncorrectMessage, WhatAreNextEventsMessage, WhatIsNext}
 
@@ -46,6 +47,7 @@ class CalendarBot(val token: String, val database: ActorRef)
     requestsSinceLastLogging.addAndGet(1)
     val chatId = message.chat.id
     implicit val timeout: Timeout = Timeout(1.second)
+    val requestDate = DateTime.now()
     MessageParser.parse(text) match {
       case CreateEventMessage(event) =>
         (database ? ScheduleEvent(chatId, event)).onComplete {
@@ -55,16 +57,16 @@ class CalendarBot(val token: String, val database: ActorRef)
             reply(DatabaseErrorMessage)
         }
       case WhatIsNext() =>
-        (database ? GetNextUserCalendarEvents(chatId, 1)).onComplete {
+        (database ? GetNextUserCalendarEventsFrom(chatId, requestDate, 1)).onComplete {
           case Success(NextUserCalendarEvents(events)) =>
-            reply(generateReplyForNextEvent(events))
+            reply(generateReplyForNextEvent(requestDate, events))
           case _ =>
             reply(DatabaseErrorMessage)
         }
       case WhatAreNextEventsMessage(numberOfEvents) =>
-        (database ? GetNextUserCalendarEvents(chatId, numberOfEvents)).onComplete {
+        (database ? GetNextUserCalendarEventsFrom(chatId, requestDate, numberOfEvents)).onComplete {
           case Success(NextUserCalendarEvents(events)) =>
-            reply(generateReplyForNextEvents(events, numberOfEvents))
+            reply(generateReplyForNextEvents(requestDate, events, numberOfEvents))
           case _ =>
             reply(DatabaseErrorMessage)
         }
@@ -73,12 +75,16 @@ class CalendarBot(val token: String, val database: ActorRef)
     }
   }
 
-  private def generateReplyForNextEvent(nextEvents: ArrayBuffer[CalendarEvent]): String = {
-    if (nextEvents.isEmpty) NoNextEventsMessage else "Next event is " + nextEvents(0)
+  private def generateReplyForNextEvent(
+      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
+    if (nextEvents.isEmpty)
+      NoNextEventsMessage
+    else
+      "Next event is " + transformCalendarEventsToHumanReadableString(nowDate, nextEvents)
   }
 
-  private def generateReplyForNextEvents
-      (nextEvents: ArrayBuffer[CalendarEvent], numberOfEvents: Int): String = {
+  private def generateReplyForNextEvents(
+      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent], numberOfEvents: Int): String = {
     if (nextEvents.isEmpty) {
       NoNextEventsMessage
     } else {
@@ -90,8 +96,15 @@ class CalendarBot(val token: String, val database: ActorRef)
           "Your next " + formatNextEvents(nextEvents.size)
       )
       replyText.append(": ")
-      replyText.append(nextEvents.map(_.toString).mkString(", ")).toString()
+      replyText
+        .append(transformCalendarEventsToHumanReadableString(nowDate, nextEvents))
+        .toString()
     }
+  }
+
+  private def transformCalendarEventsToHumanReadableString(
+      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
+    nextEvents.map(_.transformToHumanReadableString(nowDate)).mkString(", ")
   }
 
   private def formatNextEvents(numberOfEvents: Int): String = {
