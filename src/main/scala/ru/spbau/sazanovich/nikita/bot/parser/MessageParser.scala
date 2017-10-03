@@ -1,35 +1,25 @@
 package ru.spbau.sazanovich.nikita.bot.parser
 
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import ru.spbau.sazanovich.nikita.bot.CalendarEvent
 import ru.spbau.sazanovich.nikita.bot.parser.MessageParser.UserMessage
 
 import scala.util.matching.Regex
-import scala.util.parsing.combinator.RegexParsers
 
 /** Parses user input and returns corresponding [[UserMessage]]. */
-object MessageParser extends RegexParsers {
+class MessageParser(val requestDate: DateTime) extends DateTimeRangeParser with NameParser {
+
+  import MessageParser._
 
   override def skipWhitespace = true
 
   override protected val whiteSpace: Regex = "[ \t\r\f]+".r
 
-  val dateFormatter: DateTimeFormatter = DateTimeFormat.forPattern("dd-MM-yyyyHH:mm")
-  val dateParser: Parser[String] = "[0-9]{2}-[0-9]{2}-[0-9]{4}".r
-  val timeParser: Parser[String] = "[0-9]{2}:[0-9]{2}".r
-
-  val dateTimeParser: Parser[DateTime] =
-    dateParser ~ timeParser ^^ {
-      case date ~ time => DateTime.parse(date + time, dateFormatter)
-    }
-
-  val nameParser: Parser[String] = "\"" ~> ("[^\"]+".r <~ "\"")
+  override lazy val dateNow: DateTime = requestDate
 
   val createEventParser: Parser[CreateEventMessage] =
-    "Create event from" ~> dateTimeParser ~ (
-      "to" ~> dateTimeParser ~ ("named" ~> nameParser)) >> {
-      case startDateTime ~ (endDateTime ~ name) =>
+    "Create event" ~> dateTimeRangeParser ~ ("named" ~> nameParser) >> {
+      case (startDateTime, endDateTime) ~ name =>
         if (startDateTime.compareTo(endDateTime) <= 0) {
           success(CreateEventMessage(CalendarEvent(name, startDateTime, endDateTime)))
         } else {
@@ -57,6 +47,9 @@ object MessageParser extends RegexParsers {
       case _ => IncorrectMessage("I do not understand you. :(")
     }
   }
+}
+
+object MessageParser {
 
   /** Stands for a parsed user message. */
   trait UserMessage

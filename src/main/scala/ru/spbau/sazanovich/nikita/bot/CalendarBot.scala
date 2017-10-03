@@ -48,7 +48,8 @@ class CalendarBot(val token: String, val database: ActorRef)
     val chatId = message.chat.id
     implicit val timeout: Timeout = Timeout(1.second)
     val requestDate = DateTime.now()
-    MessageParser.parse(text) match {
+    val messageParser = new MessageParser(requestDate)
+    messageParser.parse(text) match {
       case CreateEventMessage(event) =>
         (database ? ScheduleEvent(chatId, event)).onComplete {
           case Success(ScheduleEventSuccess) =>
@@ -76,15 +77,15 @@ class CalendarBot(val token: String, val database: ActorRef)
   }
 
   private def generateReplyForNextEvent(
-      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
+      dateNow: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
     if (nextEvents.isEmpty)
       NoNextEventsMessage
     else
-      "Next event is " + transformCalendarEventsToHumanReadableString(nowDate, nextEvents)
+      "Next event is " + transformCalendarEventsToHumanReadableString(dateNow, nextEvents)
   }
 
   private def generateReplyForNextEvents(
-      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent], numberOfEvents: Int): String = {
+      dateNow: DateTime, nextEvents: ArrayBuffer[CalendarEvent], numberOfEvents: Int): String = {
     if (nextEvents.isEmpty) {
       NoNextEventsMessage
     } else {
@@ -97,14 +98,14 @@ class CalendarBot(val token: String, val database: ActorRef)
       )
       replyText.append(": ")
       replyText
-        .append(transformCalendarEventsToHumanReadableString(nowDate, nextEvents))
+        .append(transformCalendarEventsToHumanReadableString(dateNow, nextEvents))
         .toString()
     }
   }
 
   private def transformCalendarEventsToHumanReadableString(
-      nowDate: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
-    nextEvents.map(_.transformToHumanReadableString(nowDate)).mkString(", ")
+      dateNow: DateTime, nextEvents: ArrayBuffer[CalendarEvent]): String = {
+    nextEvents.map(_.transformToHumanReadableString(dateNow)).mkString(", ")
   }
 
   private def formatNextEvents(numberOfEvents: Int): String = {

@@ -24,9 +24,9 @@ class CalendarStorage extends PersistentActor {
     case persistentCommand: PersistentCommand =>
       persist(persistentCommand)(receivePersistentCommand)
       sender ! ScheduleEventSuccess
-    case GetNextUserCalendarEventsFrom(id, nowDate, numberOfEvents) =>
+    case GetNextUserCalendarEventsFrom(id, dateNow, numberOfEvents) =>
       val userCalendarEvents = usersCalendarEvents.getOrElseUpdate(id, ArrayBuffer.empty)
-      val nextUserEvents = computeNextUserEventsFrom(nowDate, userCalendarEvents, numberOfEvents)
+      val nextUserEvents = computeNextUserEventsFrom(dateNow, userCalendarEvents, numberOfEvents)
       sender ! NextUserCalendarEvents(nextUserEvents)
   }
 
@@ -39,13 +39,13 @@ class CalendarStorage extends PersistentActor {
   }
 
   private def computeNextUserEventsFrom(
-    nowDate: DateTime, userCalendarEvents: CalendarEvents, numberOfEvents: Int): CalendarEvents = {
+    dateNow: DateTime, userCalendarEvents: CalendarEvents, numberOfEvents: Int): CalendarEvents = {
     require(numberOfEvents > 0)
     // TODO(niksaz): Implement keeping the buffer in sorted order to not resort it.
     val sortedEvents =
       userCalendarEvents.sortBy(_.startDateTime.getMillis)
     // TODO(niksaz): Add binary search to find the start of the iteration.
-    sortedEvents.filter(event => nowDate.compareTo(event.endDateTime) < 0).take(numberOfEvents)
+    sortedEvents.filter(event => dateNow.compareTo(event.endDateTime) < 0).take(numberOfEvents)
   }
 }
 

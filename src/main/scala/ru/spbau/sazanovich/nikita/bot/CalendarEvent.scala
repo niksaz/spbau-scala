@@ -7,7 +7,7 @@ import ru.spbau.sazanovich.nikita.bot.utils.DateTimeUtils
 /** Represents an event stored in users' calendars. */
 case class CalendarEvent(name: String, startDateTime: DateTime, endDateTime: DateTime) {
 
-  import CalendarEvent.transformDateToHumanReadableString
+  import CalendarEvent._
 
   require(startDateTime.compareTo(endDateTime) <= 0)
 
@@ -44,7 +44,7 @@ object CalendarEvent {
       "tomorrow"
     } else {
       val dateTimeFormatter = DateTimeFormat.forPattern("dd-MM-yyyy")
-      "on " + dateTimeFormatter.print(futureDate)
+      dateTimeFormatter.print(futureDate)
     }
   }
 }
