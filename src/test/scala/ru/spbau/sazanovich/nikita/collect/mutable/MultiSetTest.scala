@@ -1,6 +1,7 @@
 package ru.spbau.sazanovich.nikita.collect.mutable
 
 import org.scalatest.FunSuite
+import com.google.common.truth.Truth.assertThat
 
 class MultiSetTest extends FunSuite {
 
@@ -8,45 +9,45 @@ class MultiSetTest extends FunSuite {
     val multiSet = MultiSet(1, 2, 3, 1)
     multiSet.add(5)
     assert(multiSet(5))
-    assert(multiSet.getCount(5) == 1)
+    assertThat(multiSet.getCount(5)).isEqualTo(1)
   }
 
   test("addExistingElement") {
     val multiSet = MultiSet(1, 2, 3)
     multiSet.add(2)
     assert(multiSet(2))
-    assert(multiSet.getCount(2) == 2)
+    assertThat(multiSet.getCount(2)).isEqualTo(2)
   }
 
   test("findExistingElement") {
     val multiSet = MultiSet("hello", "hi")
-    assert(multiSet.get("hello") == Option("hello"))
-    assert(multiSet.get("hi") == Option("hi"))
+    assertThat(multiSet.get("hello")).isEqualTo(Some("hello"))
+    assertThat(multiSet.get("hi")).isEqualTo(Some("hi"))
   }
 
   test("findNonExistentElement") {
     val multiSet = MultiSet("hello", "hi")
-    assert(multiSet.get("hola") == Option.empty)
-    assert(multiSet.get("bonjour") == Option.empty)
+    assertThat(multiSet.get("hola")).isEqualTo(None)
+    assertThat(multiSet.get("bonjour")).isEqualTo(None)
   }
 
   test("filter") {
     val multiSet = MultiSet(1, 2, 3, 4, 4, 5)
-    val filteredMultiSet = multiSet.filter(x => x % 2 == 0)
-    assert(filteredMultiSet == MultiSet(2, 4, 4))
+    val filteredMultiSet = multiSet.filter(_ % 2 == 0)
+    assertThat(filteredMultiSet).isEqualTo(MultiSet(2, 4, 4))
   }
 
   test("map") {
     val multiSet = MultiSet(1, 2, 3, 4, 4, 5)
-    val mappedMultiSet = multiSet.map(x => x * 2)
-    assert(mappedMultiSet == MultiSet(2, 4, 6, 8, 8, 10))
+    val mappedMultiSet = multiSet.map(_ * 2)
+    assertThat(mappedMultiSet).isEqualTo(MultiSet(2, 4, 6, 8, 8, 10))
   }
 
   test("flatMap") {
     val multiSet = MultiSet("hello", "world")
-    val mappedMultiSet = multiSet.flatMap(s => s.chars().toArray)
+    val mappedMultiSet = multiSet.flatMap(_.chars().toArray)
     val expectedMultiSet = MultiSet('h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd')
-    assert(mappedMultiSet == expectedMultiSet)
+    assertThat(mappedMultiSet).isEqualTo(expectedMultiSet)
   }
 
   test("forComprehensionMap") {
@@ -55,7 +56,7 @@ class MultiSetTest extends FunSuite {
       for {
         e <- multiSet
       } yield e * 2
-    assert(mappedMultiSet == MultiSet(2, 6, 4, 2))
+    assertThat(mappedMultiSet).isEqualTo(MultiSet(2, 6, 4, 2))
   }
 
   test("forComprehensionFlatMap") {
@@ -67,7 +68,7 @@ class MultiSetTest extends FunSuite {
         inner <- innerMultiSet
       } yield outer * inner
     val expectedMultiSet = MultiSet(2, 3, 4, 4, 6, 8, 6, 9, 12)
-    assert(mappedMultiSet == expectedMultiSet)
+    assertThat(mappedMultiSet).isEqualTo(expectedMultiSet)
   }
 
   test("forComprehensionFilter") {
@@ -77,28 +78,28 @@ class MultiSetTest extends FunSuite {
         e <- multiSet
         if e % 2 == 0
       } yield e
-    assert(filteredMultiSet == MultiSet(2, 10))
+    assertThat(filteredMultiSet).isEqualTo(MultiSet(2, 10))
   }
 
   test("multiSetIntersection") {
     val multiSetA = MultiSet(1, 2, 3, 4, 4)
     val multiSetB = MultiSet(3, 4, 5, 5)
     val multiSetIntersection = multiSetA & multiSetB
-    assert(multiSetIntersection == MultiSet(3, 4))
+    assertThat(multiSetIntersection).isEqualTo(MultiSet(3, 4))
   }
 
   test("multiSetUnion") {
     val multiSetA = MultiSet(1, 2, 3, 4, 4)
     val multiSetB = MultiSet(3, 4, 5, 5)
     val multiSetUnion = multiSetA | multiSetB
-    assert(multiSetUnion == MultiSet(1, 2, 3, 4, 4, 3, 4, 5, 5))
+    assertThat(multiSetUnion).isEqualTo(MultiSet(1, 2, 3, 4, 4, 3, 4, 5, 5))
   }
 
   test("patternMatching") {
     val multiSet = MultiSet(1, 2, 3, 3)
     multiSet match {
         // Since the unapply method does not impose any order guarantees.
-      case MultiSet(a, b, c, d) => assert(MultiSet(a, b, c, d) == multiSet)
+      case MultiSet(a, b, c, d) => assertThat(MultiSet(a, b, c, d)).isEqualTo(multiSet)
       case _ => fail("Not matched correctly!")
     }
   }

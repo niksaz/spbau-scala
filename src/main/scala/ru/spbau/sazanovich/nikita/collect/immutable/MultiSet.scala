@@ -7,7 +7,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /** Immutable covariant version of MultiSet. */
-class MultiSet[+A] private (val elementCountList: immutable.List[(A, Int)]) {
+class MultiSet[+A] private (private val elementCountList: immutable.List[(A, Int)]) {
 
   import MultiSet.mergeInElementCountMap
 
@@ -18,18 +18,18 @@ class MultiSet[+A] private (val elementCountList: immutable.List[(A, Int)]) {
 
   /** Returns whether there is at least one such element. */
   def apply[B >: A](elem: B): Boolean = {
-    elementCountList.iterator.exists(e => e._1 == elem)
+    elementCountList.exists(e => e._1 == elem)
   }
 
   /** Finds an element. */
   def get[B >: A](elem: B): Option[B] = {
-    elementCountList.iterator.find(e => e._1 == elem).map(e => e._1)
+    elementCountList.find(e => e._1 == elem).map(e => e._1)
   }
 
   @VisibleForTesting
   private[immutable] def getCount[B >: A](elem: B): Int = {
     var elemCount = 0
-    elementCountList.iterator.foreach(e => {
+    elementCountList.foreach(e => {
       if (e._1 == elem) {
         elemCount += e._2
       }
