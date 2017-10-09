@@ -21,14 +21,14 @@ class MultiSetTest extends FunSuite {
 
   test("findExistingElement") {
     val multiSet = MultiSet("hello", "hi")
-    assertThat(multiSet.get("hello")).isEqualTo(Some("hello"))
-    assertThat(multiSet.get("hi")).isEqualTo(Some("hi"))
+    assert(multiSet("hello"))
+    assert(multiSet("hi"))
   }
 
   test("findNonExistentElement") {
     val multiSet = MultiSet("hello", "hi")
-    assertThat(multiSet.get("hola")).isEqualTo(None)
-    assertThat(multiSet.get("bonjour")).isEqualTo(None)
+    assert(!multiSet("hola"))
+    assert(!multiSet("bonjour"))
   }
 
   test("filter") {

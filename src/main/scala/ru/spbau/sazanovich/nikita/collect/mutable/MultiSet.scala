@@ -1,9 +1,6 @@
 package ru.spbau.sazanovich.nikita.collect.mutable
 
-import com.google.common.annotations.VisibleForTesting
-
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 /** Mutable version of MultiSet. */
 class MultiSet[A] private (
@@ -21,11 +18,8 @@ class MultiSet[A] private (
     equalElementsCount
   }
 
-  /** Finds an element. */
-  def get(elem: A): Option[A] = Some(elem).filter(apply)
-
-  @VisibleForTesting
-  private[mutable] def getCount(elem: A): Int = elementCountMap.getOrElse(elem, 0)
+  /** Returns the count of the element. */
+  def getCount(elem: A): Int = elementCountMap.getOrElse(elem, 0)
 
   def filter(p: (A) => Boolean): MultiSet[A] = {
     createNewSetByProcessingElementsWith { (element, count, filteredMultiSet) =>
@@ -45,7 +39,9 @@ class MultiSet[A] private (
   def flatMap[B](f: (A) => Iterable[B]): MultiSet[B] = {
     createNewSetByProcessingElementsWith { (element, count, mappedMultiSet) =>
       val mappedIterable = f(element)
-      mappedIterable.foreach(mappedElement => mappedMultiSet.addCount(mappedElement, count))
+      mappedIterable.foreach { mappedElement =>
+        mappedMultiSet.addCount(mappedElement, count)
+      }
     }
   }
 
@@ -79,7 +75,9 @@ class MultiSet[A] private (
   }
 
   /**
-    * Process the elements of the MultiSet with with given function
+    * Process the elements of the MultiSet with with given function and returns that new
+    * [[MultiSet]].
+    *
     * @param processor the function which gets current element, its count and the new [[MultiSet]]
     *                  and should update the set in an appropriate way
     */
